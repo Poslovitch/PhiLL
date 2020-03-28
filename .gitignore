@@ -1,3 +1,11 @@
+# Pywikibot
+pywikibot.lwp
+throttle.ctrl
+user-*.py
+
+# IDEA
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
