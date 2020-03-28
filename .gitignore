@@ -2,6 +2,8 @@
 pywikibot.lwp
 throttle.ctrl
 user-*.py
+apicache-py3
+cache
 
 # IDEA
 .idea/

@@ -1,2 +1,4 @@
 pywikibot
 wikitextparser
+requests
+simpleaudio
