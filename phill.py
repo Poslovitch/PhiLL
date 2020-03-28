@@ -44,12 +44,84 @@ def pick_new_tasks(max_tasks=1):
             break
 
 
-def do_task(task):
-    return
+def download_file():
+    task = tasks[0]
+    Path('cache/' + task[0]).mkdir(parents=True, exist_ok=True)
+    r = requests.get(COMMONS_API, params={'action': 'query',
+                                          'format': 'json',
+                                          'prop': 'imageinfo',
+                                          'iiprop': 'url',
+                                          'titles': 'File:' + task[1]})
+    for fileid in r.json()['query']['pages'].values():
+        url = fileid['imageinfo'][0]['url']
+        urllib.request.urlretrieve(url, filename="cache/" + task[0] + "/" + task[1])
+
+
+def play_task_file():
+    task = tasks[0]
+    wave_obj = sa.WaveObject.from_wave_file("cache/" + task[0] + "/" + task[1])
+    wave_obj.play()
+
+
+def confirm_ipa():
+    r = requests.get("http://darmo-creations.herokuapp.com/ipa-generator/to-ipa/",
+                     params={'input': text_zone.text()})
+    ipa = r.json()['ipa_code']
+
+    answer = QMessageBox.question(
+        window, None,
+        f"L'API récupérée est {ipa}. Est-ce correct?",
+        QMessageBox.Ok | QMessageBox.Cancel
+    )
+    if answer & QMessageBox.Ok:
+        complete_task(ipa)
+    elif answer & QMessageBox.Cancel:
+        return
+
+
+def complete_task(ipa):
+
+
+    tasks.remove(tasks[0])
+    open_tasks_list()
+
+
+def do_task():
+    task = tasks[0]
+    download_file()
+    play_task_file()
+
+    lay = QVBoxLayout()
+
+    label_name = QLabel(task[0] + " (" + task[1] + ")")
+
+    button_play = QPushButton("Lire l'audio")
+    button_play.clicked.connect(play_task_file)
+
+    label_explain = QLabel("Entrez la prononciation en API (utilisez la syntaxe de Darmo) :")
+
+    text_zone.setPlaceholderText(task[0])
+
+    button_fetch_ipa = QPushButton("Transcrire en API")
+    button_fetch_ipa.clicked.connect(confirm_ipa)
+
+    lay.addWidget(label_name)
+    lay.addWidget(button_play)
+    lay.addWidget(label_explain)
+    lay.addWidget(text_zone)
+    lay.addWidget(button_fetch_ipa)
+
+    widget2 = QWidget()
+    widget2.setLayout(lay)
+    window.setCentralWidget(widget2)
 
 
 def start_tasks():
     pick_new_tasks()
+    open_tasks_list()
+
+
+def open_tasks_list():
     lay = QVBoxLayout()
 
     label_intro = QLabel(f"Il y a {len(tasks)} tâches à compléter.")
@@ -62,8 +134,12 @@ def start_tasks():
 
     label_tasks.setText(_tasks)
 
+    button_start = QPushButton("Lancer la première tâche")
+    button_start.clicked.connect(do_task)
+
     lay.addWidget(label_intro)
     lay.addWidget(label_tasks)
+    lay.addWidget(button_start)
 
     widget2 = QWidget()
     widget2.setLayout(lay)
@@ -94,9 +170,8 @@ window = QMainWindow()
 window.setCentralWidget(widget)
 window.show()
 
-count = 0
-LIMIT = -1
-
+# IPA entry text zone
+text_zone = QLineEdit()
 
 app.exec_()
 
