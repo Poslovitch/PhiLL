@@ -2,3 +2,4 @@ pywikibot
 wikitextparser
 requests
 simpleaudio
+pyqt5
