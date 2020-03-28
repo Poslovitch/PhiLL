@@ -4,11 +4,10 @@ import requests
 import urllib.request
 from pathlib import Path
 import simpleaudio as sa
-from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 VERSION = "0.0.1"
-SUMMARY = f"/* Prononciation */ Ajout de la prononciation phonétique pour $1 enregistrement(s) (via PhiLL v{VERSION})."
+SUMMARY = f"/* Prononciation */ Ajout d'une prononciation phonétique (via PhiLL v{VERSION})."
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 
 # Gathering data from the Wiktionary
@@ -23,7 +22,7 @@ def extract_templates(wikicode):
 
     for lang_section in wikicode.sections:
         if lang_section.title.replace(" ", "").lower() == "{{langue|fr}}":
-            return wtp.parse(lang_section.contents).templates
+            return lang_section.templates
 
     # There is no section with that language (which is weird??)
     return None
@@ -80,9 +79,23 @@ def confirm_ipa():
 
 
 def complete_task(ipa):
+    task = tasks[0]
+    page = pwb.Page(site, task[0])
 
+    wikicode = wtp.parse(page.text)
+    for section in wikicode.sections:
+        if section.title.replace(" ", "").lower() == "{{langue|fr}}":
+            for template in section.templates:
+                for arg in template.arguments:
+                    if arg.name.lower() == "audio" and arg.value == task[1]:
+                        template.set_arg("pron", ipa)
+                        break
 
-    tasks.remove(tasks[0])
+    page.text = str(wikicode)
+
+    page.save(SUMMARY, minor=False)
+
+    tasks.remove(task)
     open_tasks_list()
 
 
@@ -174,40 +187,3 @@ window.show()
 text_zone = QLineEdit()
 
 app.exec_()
-
-# for page in category.articles(startprefix='t'):
-#     if count > LIMIT:
-#         break
-#
-#     if page.namespace() == 0:
-#         page_title = page.title().replace(' ', '_')
-#         print(page_title)
-#         Path('cache/' + page_title).mkdir(parents=True, exist_ok=True)
-#
-#         wikicode = wtp.parse(page.text)
-#         section = get_pronunciation_section(wikicode, 'fr')
-#
-#         section_code = wtp.parse(section.contents)
-#         for template in section_code.templates:
-#             if template.name.lower() == "écouter":
-#                 for arg in template.arguments:
-#                     if arg.name.lower() == "audio":
-#                         print(arg.value)
-#                         r = requests.get(COMMONS_API, params={'action': 'query',
-#                                                               'format': 'json',
-#                                                               'prop': 'imageinfo',
-#                                                               'iiprop': 'url',
-#                                                               'titles': 'File:' + arg.value})
-#                         for fileid in r.json()['query']['pages'].values():
-#                             url = fileid['imageinfo'][0]['url']
-#                             urllib.request.urlretrieve(url, filename="cache/" + page_title + "/" + arg.value)
-#
-#                             wave_obj = sa.WaveObject.from_wave_file("cache/" + page_title + "/" + arg.value)
-#                             play_obj = wave_obj.play()
-#                             play_obj.wait_done()
-#
-#                             api = input("Tapez en API: ")
-#                             r2 = requests.get("http://darmo-creations.herokuapp.com/ipa-generator/to-ipa/",
-#                                               params={'input': api})
-#                             print(r2.json()['ipa_code'])
-#         count += 1
