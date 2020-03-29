@@ -4,7 +4,6 @@ import requests
 import urllib.request
 from pathlib import Path
 import simpleaudio as sa
-from PyQt5.QtWidgets import *
 from PhillApp import *
 
 VERSION = "0.0.1"
@@ -97,67 +96,9 @@ def complete_task(ipa):
     page.save(SUMMARY, minor=False)
 
     tasks.remove(task)
-    open_tasks_list()
-
-
-def do_task():
-    task = tasks[0]
-    download_file()
-    play_task_file()
-
-    lay = QVBoxLayout()
-
-    label_name = QLabel(task[0] + " (" + task[1] + ")")
-
-    button_play = QPushButton("Lire l'audio")
-    button_play.clicked.connect(play_task_file)
-
-    label_explain = QLabel("Entrez la prononciation en API (utilisez la syntaxe de Darmo) :")
-
-    text_zone.setPlaceholderText(task[0])
-
-    button_fetch_ipa = QPushButton("Transcrire en API")
-    button_fetch_ipa.clicked.connect(confirm_ipa)
-
-    lay.addWidget(label_name)
-    lay.addWidget(button_play)
-    lay.addWidget(label_explain)
-    lay.addWidget(text_zone)
-    lay.addWidget(button_fetch_ipa)
-
-    widget2 = QWidget()
-    widget2.setLayout(lay)
-    window.setCentralWidget(widget2)
-
 
 def start_tasks():
     pick_new_tasks()
-    open_tasks_list()
-
-
-def open_tasks_list():
-    lay = QVBoxLayout()
-
-    label_intro = QLabel(f"Il y a {len(tasks)} tâches à compléter.")
-
-    label_tasks = QLabel()
-
-    _tasks = ""
-    for task in tasks:
-        _tasks += f"- {task[0]} : {task[1]}\n"
-
-    label_tasks.setText(_tasks)
-
-    button_start = QPushButton("Lancer la première tâche")
-    button_start.clicked.connect(do_task)
-
-    lay.addWidget(label_intro)
-    lay.addWidget(label_tasks)
-    lay.addWidget(button_start)
-
-    widget2 = QWidget()
-    widget2.setLayout(lay)
-    window.setCentralWidget(widget2)
 
 
 # GUI:
