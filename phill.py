@@ -3,14 +3,6 @@ import wikitextparser as wtp
 from PhillApp import *
 
 VERSION = "0.0.1"
-SUMMARY = f"/* Prononciation */ Ajout d'une prononciation phonétique (via PhiLL v{VERSION})"
-
-# Gathering data from the Wiktionary
-site = pwb.Site()
-category = pwb.Category(site, "Catégorie:Wiktionnaire:Prononciations phonétiques manquantes en français")
-
-tasks = []
-
 
 def complete_task(ipa):
     task = tasks[0]

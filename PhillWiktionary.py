@@ -5,7 +5,7 @@ import wikitextparser as wtp
 class PhillWiktionary:
 
     def __init__(self, phill_ver: str, category_name: str):
-        self.SUMMARY = f"/* Prononciation */ Ajout d'une prononciation phonétique (via PhiLL v{phill_ver})"
+        self.SUMMARY = f"/* Prononciation */ Prononciation phonétique (via PhiLL v{phill_ver})"
 
         self.site = pwb.Site()
         self.category = pwb.Category(self.site, category_name)
@@ -61,3 +61,21 @@ class PhillWiktionary:
                 page_tasks.append((page.title(), template.get_arg("audio").value))
 
         return page_tasks
+
+    def apply_completed_tasks(self, completed_tasks: list):
+        for task in completed_tasks:
+            page = pwb.Page(self.site, task[0])
+            wikicode = wtp.parse(page.text)
+            for section in wikicode.sections:
+                if section.title.replace(" ", "").lower() == "{{langue|fr}}":
+                    for template in section.templates:
+                        for arg in template.arguments:
+                            if arg.name.lower() == "audio" and arg.value == task[1]:
+                                template.set_arg("pron", task[2])
+                                break
+
+            page.text = str(wikicode)
+
+            page.save(self.SUMMARY, minor=False)
+
+        completed_tasks.clear()

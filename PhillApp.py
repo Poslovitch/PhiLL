@@ -10,7 +10,8 @@ class PhillApp(QMainWindow):
         super().__init__()
 
         self.wiktionary = PhWikt.PhillWiktionary(version, "Catégorie:Wiktionnaire:Prononciations phonétiques manquantes en français")
-        self.tasks = self.wiktionary.pick_new_tasks()
+        self.pending_tasks = self.wiktionary.pick_new_tasks()
+        self.completed_tasks = []
 
         self.setCentralWidget(WelcomeScreen(self))
         self.show()
@@ -19,7 +20,7 @@ class PhillApp(QMainWindow):
         self.setCentralWidget(TasksListScreen(self))
 
     def show_task(self):
-        self.setCentralWidget(TaskScreen(self, self.tasks[0]))
+        self.setCentralWidget(TaskScreen(self, self.pending_tasks[0]))
 
 
 class WelcomeScreen(QWidget):
@@ -27,7 +28,8 @@ class WelcomeScreen(QWidget):
     def __init__(self, phill_app: PhillApp):
         super().__init__()
         label = QLabel("Bonjour ! Bienvenue sur PhiLL.\n"
-                       f"Il y a {phill_app.wiktionary.get_remaining_pages()} prononciations phonologiques manquantes en français.\n"
+                       f"Il y a {phill_app.wiktionary.get_remaining_pages()} pages sur lesquelles des prononciations"
+                       " phonétiques ne sont pas renseignées.\n"
                        "Êtes-vous prêt au départ pour votre aventure phonologique ?")
 
         start_button = QPushButton("C'est parti !")
@@ -48,12 +50,12 @@ class TasksListScreen(QWidget):
 
         layout = QVBoxLayout()
 
-        label_intro = QLabel(f"Il y a {len(phill_app.tasks)} tâches à compléter.")
+        label_intro = QLabel(f"Il y a {len(phill_app.pending_tasks)} tâches à compléter.")
 
         label_tasks = QLabel()
 
         _tasks = ""
-        for task in phill_app.tasks:
+        for task in phill_app.pending_tasks:
             _tasks += f"- {task[0]} : {task[1]}\n"
 
         label_tasks.setText(_tasks)
@@ -73,6 +75,7 @@ class TaskScreen(QWidget):
     def __init__(self, phill_app: PhillApp, task):
         super().__init__()
         self.task = task
+        self.phill_app = phill_app
         self.download_file()
         layout = QVBoxLayout()
 
@@ -109,10 +112,15 @@ class TaskScreen(QWidget):
             QMessageBox.Yes | QMessageBox.No
         )
         if answer & QMessageBox.Yes:
-            # complete_task(ipa)
-            print("time to complete the task")
+            self.complete_task(ipa)
         elif answer & QMessageBox.No:
             return
 
     def download_file(self):
         PhillWeb.download_commons_file(self.task[0], self.task[1])
+
+    def complete_task(self, ipa: str):
+        self.phill_app.completed_tasks.append((self.task[0], self.task[1], ipa))
+        self.phill_app.pending_tasks.remove(self.task)
+        self.phill_app.wiktionary.apply_completed_tasks(self.phill_app.completed_tasks)
+        self.phill_app.show_tasks_list()
