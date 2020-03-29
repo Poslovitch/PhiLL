@@ -5,9 +5,10 @@ import urllib.request
 from pathlib import Path
 import simpleaudio as sa
 from PyQt5.QtWidgets import *
+from PhillApp import *
 
 VERSION = "0.0.1"
-SUMMARY = f"/* Prononciation */ Ajout d'une prononciation phonétique (via PhiLL v{VERSION})."
+SUMMARY = f"/* Prononciation */ Ajout d'une prononciation phonétique (via PhiLL v{VERSION})"
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 
 # Gathering data from the Wiktionary
@@ -161,29 +162,10 @@ def open_tasks_list():
 
 # GUI:
 app = QApplication([])
-app.setApplicationName("Phonetica in Lingua Libre (PhiLL)")
+app.setApplicationName("Phonetica in Lingua Libre (PhiLL) v" + VERSION)
 app.setApplicationVersion(VERSION)
-
-label = QLabel("Bonjour ! Bienvenue sur PhiLL.\n"
-               f"Il y a {category.categoryinfo['pages']} prononciations phonologiques manquantes en français.\n"
-               "Êtes-vous prêt au départ pour votre aventure phonologique ?")
-
-start_button = QPushButton("C'est parti !")
-start_button.clicked.connect(start_tasks)
-
-layout = QVBoxLayout()
-
-layout.addWidget(label)
-layout.addWidget(start_button)
-
-widget = QWidget()
-widget.setLayout(layout)
-
-window = QMainWindow()
-window.setCentralWidget(widget)
-window.show()
+window = PhillApp()
+app.exec_()
 
 # IPA entry text zone
 text_zone = QLineEdit()
-
-app.exec_()
