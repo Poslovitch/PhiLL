@@ -31,15 +31,15 @@ class PhillWiktionary:
 
     def is_template_valid(self, template) -> bool:
         # Check the arg "2" and "pron": if they exist and are not empty -> invalid
-        if template.get_arg("2") is not None:
+        if template.has_arg("2"):
             if len(template.get_arg("2").value.replace(" ", "")) > 0:
                 return False
-        if template.get_arg("pron") is not None:
+        if template.has_arg("pron"):
             if len(template.get_arg("pron").value.replace(" ", "")) > 0:
                 return False
 
         # If there is no audio, invalid as well
-        if (template.get_arg("audio") is None) or (len(template.get_arg("audio").value.replace(" ", "")) == 0):
+        if (not template.has_arg("audio")) or (len(template.get_arg("audio").value.replace(" ", "")) == 0):
             return False
 
         return True
@@ -71,11 +71,29 @@ class PhillWiktionary:
                     for template in section.templates:
                         for arg in template.arguments:
                             if arg.name.lower() == "audio" and arg.value == task[1]:
-                                template.set_arg("pron", task[2])
+                                page.text = str(wikicode).replace(str(template), str(self.update_template(template, task[2])))
                                 break
-
-            page.text = str(wikicode)
 
             page.save(self.SUMMARY, minor=False)
 
         completed_tasks.clear()
+
+    def update_template(self, template: wtp.Template, ipa: str):
+        # add pron and remove 2
+        template.set_arg("pron", ipa)
+        template.del_arg("2")
+
+        # sort all the arguments
+        sorted_args = sorted(template.arguments, key=self.sort_template_arguments)
+
+        new_template = "{{écouter"
+        for arg in sorted_args:
+            new_template += str(arg)
+        new_template += "}}"
+
+        return new_template
+
+    @staticmethod
+    def sort_template_arguments(arg: wtp.Argument):
+        priority = ["1", "pron", "3", "lang", "audio", "titre"]
+        return priority.index(arg.name)
