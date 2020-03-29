@@ -1,4 +1,6 @@
 from PyQt5.QtWidgets import *
+import PhillAudio
+import PhillWeb
 
 
 class PhillApp(QMainWindow):
@@ -20,7 +22,7 @@ class PhillApp(QMainWindow):
 
 class WelcomeScreen(QWidget):
 
-    def __init__(self, phill_app):
+    def __init__(self, phill_app: PhillApp):
         super().__init__()
         label = QLabel("Bonjour ! Bienvenue sur PhiLL.\n"
                        f"Il y a %pages% prononciations phonologiques manquantes en français.\n"
@@ -41,7 +43,7 @@ class WelcomeScreen(QWidget):
 
 class TasksListScreen(QWidget):
 
-    def __init__(self, phill_app):
+    def __init__(self, phill_app: PhillApp):
         super().__init__()
 
         layout = QVBoxLayout()
@@ -68,14 +70,15 @@ class TasksListScreen(QWidget):
 
 class TaskScreen(QWidget):
 
-    def __init__(self, phill_app, task):
+    def __init__(self, phill_app: PhillApp, task):
         super().__init__()
+        self.task = task
         layout = QVBoxLayout()
 
         label_name = QLabel(task[0] + " (" + task[1] + ")")
 
         button_play = QPushButton("Lire l'audio")
-        # button_play.clicked.connect(play_task_file)
+        button_play.clicked.connect(self.play_file)
 
         label_explain = QLabel("Entrez la prononciation en API (utilisez la syntaxe de Darmo) :")
 
@@ -83,7 +86,7 @@ class TaskScreen(QWidget):
         self.line_edit.setPlaceholderText(task[0])
 
         button_fetch_ipa = QPushButton("Transcrire en API")
-        # button_fetch_ipa.clicked.connect(confirm_ipa)
+        button_fetch_ipa.clicked.connect(self.confirm_ipa)
 
         layout.addWidget(label_name)
         layout.addWidget(button_play)
@@ -92,3 +95,19 @@ class TaskScreen(QWidget):
         layout.addWidget(button_fetch_ipa)
 
         self.setLayout(layout)
+
+    def play_file(self):
+        PhillAudio.play_wav_file(self.task[0], self.task[1])
+
+    def confirm_ipa(self):
+        ipa = PhillWeb.translate_code_to_ipa(self.line_edit.text())
+        answer = QMessageBox.question(
+            self, None,
+            f"La prononciation entrée est {ipa}. Est-ce correct?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if answer & QMessageBox.Yes:
+            # complete_task(ipa)
+            print("time to complete the task")
+        elif answer & QMessageBox.No:
+            return
