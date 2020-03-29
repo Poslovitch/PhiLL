@@ -1,14 +1,16 @@
 from PyQt5.QtWidgets import *
 import PhillAudio
 import PhillWeb
+import PhillWiktionary as PhWikt
 
 
 class PhillApp(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, version):
         super().__init__()
 
-        self.tasks = [("table de vérité", "LL-Q150 (fra)-WikiLucas00-table de vérité.wav")]
+        self.wiktionary = PhWikt.PhillWiktionary(version, "Catégorie:Wiktionnaire:Prononciations phonétiques manquantes en français")
+        self.tasks = self.wiktionary.pick_new_tasks()
 
         self.setCentralWidget(WelcomeScreen(self))
         self.show()
@@ -25,10 +27,8 @@ class WelcomeScreen(QWidget):
     def __init__(self, phill_app: PhillApp):
         super().__init__()
         label = QLabel("Bonjour ! Bienvenue sur PhiLL.\n"
-                       f"Il y a %pages% prononciations phonologiques manquantes en français.\n"
+                       f"Il y a {phill_app.wiktionary.get_remaining_pages()} prononciations phonologiques manquantes en français.\n"
                        "Êtes-vous prêt au départ pour votre aventure phonologique ?")
-
-        # category.categoryinfo['pages']
 
         start_button = QPushButton("C'est parti !")
         start_button.clicked.connect(phill_app.show_tasks_list)
@@ -73,6 +73,7 @@ class TaskScreen(QWidget):
     def __init__(self, phill_app: PhillApp, task):
         super().__init__()
         self.task = task
+        self.download_file()
         layout = QVBoxLayout()
 
         label_name = QLabel(task[0] + " (" + task[1] + ")")
@@ -95,6 +96,7 @@ class TaskScreen(QWidget):
         layout.addWidget(button_fetch_ipa)
 
         self.setLayout(layout)
+        self.play_file()
 
     def play_file(self):
         PhillAudio.play_wav_file(self.task[0], self.task[1])
@@ -111,3 +113,6 @@ class TaskScreen(QWidget):
             print("time to complete the task")
         elif answer & QMessageBox.No:
             return
+
+    def download_file(self):
+        PhillWeb.download_commons_file(self.task[0], self.task[1])
