@@ -14,7 +14,7 @@ def translate_code_to_ipa(code: str) -> str:
 def translate_ipa_to_code(ipa: str) -> str:
     r = requests.get("http://darmo-creations.herokuapp.com/ipa-generator/from-ipa/",
                      params={'input': ipa})
-    return r.json()['ipa_code']
+    return r.json()['pronunciation_code']
 
 
 def download_commons_file(sub_folder: str, file_name: str):
