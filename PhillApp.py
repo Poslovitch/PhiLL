@@ -76,6 +76,7 @@ class TaskScreen(QWidget):
         super().__init__()
         self.task = task
         self.phill_app = phill_app
+        self.prototypical_pronunciation_code = ""
         self.download_file()
         layout = QVBoxLayout()
 
@@ -95,11 +96,34 @@ class TaskScreen(QWidget):
         layout.addWidget(label_name)
         layout.addWidget(button_play)
         layout.addWidget(label_explain)
-        layout.addWidget(self.line_edit)
+        if len(task) == 3:
+            # task has a prototypical pronunciation
+            prototypical_pronunciation = task[2].replace('t', 't̪').replace('d', 'd̪').replace('l', 'l̪').replace('n', 'n̪')
+            self.prototypical_pronunciation_code = PhillWeb.translate_ipa_to_code(prototypical_pronunciation)
+
+            sub_layout = QHBoxLayout()
+
+            label_use_ipp = QLabel("Importez la prononciation prototypique adaptée à la phonologie française [" +
+                                   prototypical_pronunciation + "] avec le bouton IPP.")
+            layout.addWidget(label_use_ipp)
+
+            button_use_existing_ipa = QPushButton("IPP")
+            button_use_existing_ipa.clicked.connect(self.import_prototypical_pronunciation)
+
+            sub_layout.addWidget(self.line_edit)
+            sub_layout.addWidget(button_use_existing_ipa)
+
+            layout.addLayout(sub_layout)
+        else:
+            layout.addWidget(self.line_edit)
+
         layout.addWidget(button_fetch_ipa)
 
         self.setLayout(layout)
         self.play_file()
+
+    def import_prototypical_pronunciation(self):
+        self.line_edit.setText(self.prototypical_pronunciation_code)
 
     def play_file(self):
         PhillAudio.play_wav_file(self.task[0], self.task[1])

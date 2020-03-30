@@ -17,7 +17,7 @@ class PhillWiktionary:
         new_tasks = []
         pages_count = 0
 
-        for page in self.category.articles(startprefix='t'):
+        for page in self.category.articles(startprefix='dactylog'):
             if page.namespace() == 0:
                 page_tasks = self.extract_tasks(page)
                 if len(page_tasks) > 0:
@@ -44,9 +44,20 @@ class PhillWiktionary:
 
         return True
 
+    @staticmethod
+    def extract_prototypical_pronunciation(page: pwb.Page) -> str:
+        wikicode = wtp.parse(page.text)
+
+        for section in wikicode.sections:
+            if section.title.replace(" ", "").lower() == "{{langue|fr}}":
+                for template in section.templates:
+                    if template.name.lower() == "pron":
+                        return template.get_arg("1").value
+
     def extract_tasks(self, page: pwb.Page) -> list:
         templates = []
         page_tasks = []
+        prototypical_pronunciation = self.extract_prototypical_pronunciation(page)
 
         wikicode = wtp.parse(page.text)
         # Gather all the {{écouter}}
@@ -58,7 +69,10 @@ class PhillWiktionary:
 
         for template in templates:
             if self.is_template_valid(template):
-                page_tasks.append((page.title(), template.get_arg("audio").value))
+                task = (page.title(), template.get_arg("audio").value)
+                if prototypical_pronunciation:
+                    task = (page.title(), template.get_arg("audio").value, prototypical_pronunciation)
+                page_tasks.append(task)
 
         return page_tasks
 
