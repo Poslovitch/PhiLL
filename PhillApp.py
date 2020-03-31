@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import *
+import webbrowser
 import PhillAudio
 import PhillWeb
 import PhillWiktionary as PhWikt
@@ -86,8 +87,6 @@ class TaskScreen(QWidget):
         button_play = QPushButton("Lire l'audio")
         button_play.clicked.connect(self.play_file)
 
-        label_explain = QLabel("Entrez la prononciation en API (utilisez la syntaxe de Darmo) :")
-
         self.line_edit = QLineEdit()
         self.line_edit.setPlaceholderText(task[0])
 
@@ -96,7 +95,18 @@ class TaskScreen(QWidget):
 
         layout.addWidget(label_name)
         layout.addWidget(button_play)
-        layout.addWidget(label_explain)
+
+        layout_darmo = QHBoxLayout()
+
+        label_explain = QLabel("Entrez la prononciation en API dans le champ texte\n"
+                               "ci-dessous (utilisez la syntaxe de Darmo) :")
+        layout_darmo.addWidget(label_explain)
+
+        button_darmo_syntax = QPushButton("Documentation sur la syntaxe de Darmo")
+        button_darmo_syntax.clicked.connect(self.open_darmo_website)
+        layout_darmo.addWidget(button_darmo_syntax)
+
+        layout.addLayout(layout_darmo)
         if len(task) == 3:
             # task has a prototypical pronunciation
             prototypical_pronunciation = task[2].replace('t', 't̪').replace('d', 'd̪').replace('l', 'l̪').replace('n', 'n̪')
@@ -122,6 +132,10 @@ class TaskScreen(QWidget):
 
         self.setLayout(layout)
         self.play_file()
+
+    @staticmethod
+    def open_darmo_website():
+        webbrowser.open("https://darmo-creations.herokuapp.com/ipa-generator/")
 
     def import_prototypical_pronunciation(self):
         self.line_edit.setText(self.prototypical_pronunciation_code)
