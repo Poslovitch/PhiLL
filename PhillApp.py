@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 import PhillAudio
 import PhillWeb
 import PhillWiktionary as PhWikt
+import PhillIPA
 
 
 class PhillApp(QMainWindow):
@@ -99,7 +100,7 @@ class TaskScreen(QWidget):
         if len(task) == 3:
             # task has a prototypical pronunciation
             prototypical_pronunciation = task[2].replace('t', 't̪').replace('d', 'd̪').replace('l', 'l̪').replace('n', 'n̪')
-            self.prototypical_pronunciation_code = PhillWeb.translate_ipa_to_code(prototypical_pronunciation)
+            self.prototypical_pronunciation_code = PhillIPA.ipa_to_code(prototypical_pronunciation)
 
             sub_layout = QHBoxLayout()
 
@@ -129,7 +130,7 @@ class TaskScreen(QWidget):
         PhillAudio.play_wav_file(self.task[0], self.task[1])
 
     def confirm_ipa(self):
-        ipa = PhillWeb.translate_code_to_ipa(self.line_edit.text())
+        ipa = PhillIPA.code_to_ipa(self.line_edit.text())
         answer = QMessageBox.question(
             self, None,
             f"La prononciation entrée est {ipa}. Est-ce correct?",
