@@ -12,13 +12,22 @@ class PhillApp(QMainWindow):
         super().__init__()
 
         self.wiktionary = PhWikt.PhillWiktionary(version, "Catégorie:Wiktionnaire:Prononciations phonétiques manquantes en français")
-        self.pending_tasks = self.wiktionary.pick_new_tasks()
+        self.pending_tasks = []
         self.completed_tasks = []
+        self.first_time = True
 
-        self.setCentralWidget(WelcomeScreen(self))
+        self.welcome_screen = WelcomeScreen(self)
+
+        self.setCentralWidget(self.welcome_screen)
         self.show()
 
     def show_tasks_list(self):
+        if self.first_time:
+            self.pending_tasks = self.wiktionary.pick_new_tasks(self.welcome_screen.start_from.text(), 4)
+            self.first_time = False
+        elif len(self.pending_tasks) <= 3:
+            print('there is less than 3 tasks')
+            # self.pending_tasks.append(self.wiktionary.pick_new_tasks(max_pages=1))
         self.setCentralWidget(TasksListScreen(self))
 
     def show_task(self):
@@ -34,12 +43,16 @@ class WelcomeScreen(QWidget):
                        " phonétiques ne sont pas renseignées.\n"
                        "Êtes-vous prêt au départ pour votre aventure phonologique ?")
 
+        self.start_from = QLineEdit()
+        # self.start_from.setText("a")
+
         start_button = QPushButton("C'est parti !")
         start_button.clicked.connect(phill_app.show_tasks_list)
 
         layout = QVBoxLayout()
 
         layout.addWidget(label)
+        layout.addWidget(self.start_from)
         layout.addWidget(start_button)
 
         self.setLayout(layout)

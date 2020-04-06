@@ -10,22 +10,28 @@ class PhillWiktionary:
         self.site = pwb.Site()
         self.category = pwb.Category(self.site, category_name)
 
+        self.start_prefix = ''
+
     def get_remaining_pages(self) -> int:
         return self.category.categoryinfo['pages']
 
-    def pick_new_tasks(self, max_pages=5):
+    def pick_new_tasks(self, start_from: str = '', max_pages: int = 5):
         new_tasks = []
         pages_count = 0
 
-        for page in self.category.articles(startprefix='dactylog'):
+        if start_from:
+            self.start_prefix = start_from
+
+        for page in self.category.articles(startprefix=self.start_prefix):
             if page.namespace() == 0:
                 page_tasks = self.extract_tasks(page)
                 if len(page_tasks) > 0:
                     pages_count += 1
                     new_tasks.extend(page_tasks)
 
-            if pages_count >= max_pages:
-                break
+                if pages_count >= max_pages:
+                    self.start_prefix = page.title()
+                    break
 
         return new_tasks
 
