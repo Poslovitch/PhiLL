@@ -160,7 +160,7 @@ class TaskScreen(QWidget):
         ipa = PhillIPA.code_to_ipa(self.line_edit.text())
         answer = QMessageBox.question(
             self, None,
-            f"La prononciation entrée est {ipa}. Est-ce correct?",
+            f"La prononciation entrée est [{ipa}]. Est-ce correct?",
             QMessageBox.Yes | QMessageBox.No
         )
         if answer & QMessageBox.Yes:
